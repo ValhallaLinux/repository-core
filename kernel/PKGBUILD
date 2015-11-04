@@ -11,12 +11,20 @@ makedepends=('cpio' 'bc' 'perl' 'lz4')
 options=('!strip')
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${pkgver}.tar.xz"
         "kernel-i686-config"
-        "kernel-x86_64-config")
-sha256sums=(''
-            ''
-            '')
+        "kernel-x86_64-config"
+        "CVE-2015-5156.patch"
+        "CVE-2015-6937.patch")
+sha256sums=('4b49b246b2b99404432fdaa3338a01ce84dcd05b9501aaa71b04d81ac6e13f61'
+            'f4470a550c61d91e1b97d4aa01e7d7965c819a2ff048678e423b114050d4cd76'
+            '353d128133247ea77c24b9abd32f3efa411bb9f39d959bf1fa5925d07e3c908b'
+            '03d3a391d8bc898fdd8dbbc7a29d5af49d7cf64489b6d4048002c2f96ffcf55f'
+            '8be6a2bdb407f4280ba5034312f07f423e9f1a9c37d68fc17109f14ce649f3ab')
 prepare() {
     cd "${srcdir}/linux-${pkgver}"
+
+    #patch cve's
+    patch -Np1 "${srcdir}/CVE-2015-5156.patch"
+    patch -Np1 "${srcdir}/CVE-2015-6937.patch"
 
     if [ "${CARCH}" = "x86_64" ]; then
       cat "${srcdir}/kernel-x86_64-config" > ./.config
