@@ -1,0 +1,92 @@
+# toolchain build order: linux-api-headers->glibc->binutils->gcc->binutils->glibc
+pkgname=glibc
+pkgver=2.22
+pkgrel=1
+pkgdesc="GNU C Library"
+arch=('i686' 'x86_64')
+url="http://www.gnu.org/software/libc"
+license=('GPL' 'LGPL')
+groups=('base')
+depends=('kernel-api-headers>=4.1' 'tzdata' 'filesystem')
+makedepends=('gcc>=5.2')
+options=('!strip' 'staticlibs')
+install=glibc.install
+source=(http://ftp.gnu.org/gnu/libc/${pkgname}-${pkgver}.tar.xz)
+sha256sums=('eb731406903befef1d8f878a46be75ef862b9056ab0cde1626d08a7a05328948')
+
+prepare() {
+  mkdir ${srcdir}/glibc-build
+}
+
+build() {
+  cd ${srcdir}/glibc-build
+
+  export CFLAGS="-O3 -g -U_FORTIFY_SOURCE -fno-strict-aliasing -fomit-frame-pointer -mno-tls-direct-seg-refs -mtune=generic -march=x86-64"
+
+  echo "slibdir=/usr/lib" >> configparms
+  echo "rtlddir=/usr/lib" >> configparms
+  echo "sbindir=/usr/bin" >> configparms
+  echo "rootsbindir=/usr/bin" >> configparms
+
+  ${srcdir}/${pkgname}-${pkgver}/configure \
+    --prefix=/usr \
+    --libdir=/usr/lib \
+    --libexecdir=/usr/lib/misc \
+    --mandir=/usr/share/man \
+    --infodir=/usr/share/info \
+    --enable-obsolete-rpc \
+    --disable-profile \
+    --without-selinux \
+    --without-gd \
+    --without-cvs \
+    --enable-stackguard-randomization \
+    --enable-bind-now \
+    --enable-add-ons \
+    --with-__thread \
+    --enable-kernel=2.6.25 \
+    --with-pkgversion='Valhalla Linux'
+    --with-bugurl=https://bugs.valhallalinux.com/ \
+    --with-tls \
+    --enable-multi-arch \
+    
+  make
+}
+
+package() {
+  cd ${srcdir}/glibc-build
+
+  # remove the static libraries that have a shared counterpart
+  # libc, libdl, libm and libpthread are required for toolchain testsuites
+  # in addition libcrypt appears widely required
+  rm $pkgdir/usr/lib/lib{anl,BrokenLocale,nsl,resolv,rt,util}.a
+  if [[ $CARCH = "x86_64" ]]; then
+    rm $pkgdir/usr/lib/libmvec.a
+  fi
+
+  # Do not strip the following files for improved debugging support
+  # ("improved" as in not breaking gdb and valgrind...):
+  #   ld-${pkgver}.so
+  #   libc-${pkgver}.so
+  #   libpthread-${pkgver}.so
+  #   libthread_db-1.0.so
+
+  cd $pkgdir
+  strip $STRIP_BINARIES usr/bin/{gencat,getconf,getent,iconv,iconvconfig} \
+                        usr/bin/{ldconfig,locale,localedef,nscd,makedb} \
+                        usr/bin/{pcprofiledump,pldd,rpcgen,sln,sprof} \
+                        usr/lib/getconf/*
+  if [[ $CARCH = "i686" ]]; then
+    strip $STRIP_BINARIES usr/bin/lddlibc4
+  fi
+
+  strip $STRIP_STATIC usr/lib/*.a
+
+  strip $STRIP_SHARED usr/lib/lib{anl,BrokenLocale,cidn,crypt}-*.so \
+                      usr/lib/libnss_{compat,db,dns,files,hesiod,nis,nisplus}-*.so \
+                      usr/lib/lib{dl,m,nsl,resolv,rt,util}-*.so \
+                      usr/lib/lib{memusage,pcprofile,SegFault}.so \
+                      usr/lib/{audit,gconv}/*.so || true
+  if [[ $CARCH = "x86_64" ]]; then
+    strip $STRIP_SHARED usr/lib/libmvec-*.so
+  fi
+}
