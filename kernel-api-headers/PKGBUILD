@@ -1,0 +1,38 @@
+# toolchain build order: kernel-api-headers->glibc->binutils->gcc->binutils->glibc
+
+pkgname=kernel-api-headers
+pkgver=4.1.4
+_basever=4.1
+pkgrel=1
+pkgdesc="Kernel headers sanitized for use in userspace"
+arch=('i686' 'x86_64')
+url="http://www.gnu.org/software/libc"
+license=('GPL2')
+source=(http://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basever}.tar.xz
+        http://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz
+md5sums=('fe9dc0f6729f36400ea81aa41d614c37'
+         'd7e306b17b0b5d49120adeee1a6bf4a8'
+
+prepare() {
+  cd ${srcdir}/linux-${_basever}
+  [[ $pkgver != $_basever ]] && patch -p1 -i ${srcdir}/patch-${pkgver} || true
+}
+
+build() {
+  cd ${srcdir}/linux-${_basever}
+
+  make mrproper
+  make headers_check
+}
+
+package() {
+  cd ${srcdir}/linux-${_basever}
+  make INSTALL_HDR_PATH=${pkgdir}/usr headers_install
+
+  # use headers from libdrm
+  rm -r ${pkgdir}/usr/include/drm
+  
+  # clean-up unnecessary files generated during install
+  find ${pkgdir} \( -name .install -o -name ..install.cmd \) -delete
+}
+

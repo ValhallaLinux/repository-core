@@ -1,4 +1,4 @@
-# toolchain build order: linux-api-headers->glibc->binutils->gcc->binutils->glibc
+# toolchain build order: kernel-api-headers->glibc->binutils->gcc->binutils->glibc
 pkgname=glibc
 pkgver=2.22
 pkgrel=1
@@ -21,7 +21,7 @@ prepare() {
 build() {
   cd ${srcdir}/glibc-build
 
-  export CFLAGS="-O3 -g -U_FORTIFY_SOURCE -fno-strict-aliasing -fomit-frame-pointer -mno-tls-direct-seg-refs -mtune=generic -march=x86-64"
+  export CFLAGS="-O3 -g -U_FORTIFY_SOURCE -fno-strict-aliasing -fomit-frame-pointer -mno-tls-direct-seg-refs -mtune=generic"
 
   echo "slibdir=/usr/lib" >> configparms
   echo "rtlddir=/usr/lib" >> configparms
@@ -48,7 +48,7 @@ build() {
     --with-bugurl=https://bugs.valhallalinux.com/ \
     --with-tls \
     --enable-multi-arch \
-    
+
   make
 }
 
