@@ -1,0 +1,69 @@
+pkgname=binutils
+pkgver=2.25.1
+pkgrel=1
+pkgdesc="The Binutils package contains a linker, an assembler, and other tools for handling object files."
+arch=('i686' 'x86_64')
+url="http://www.gnu.org/software/binutils/"
+license=('GPL')
+groups=('base-devel')
+depends=('glibc>=2.22' 'zlib')
+checkdepends=('dejagnu' 'bc')
+options=('staticlibs' '!distcc' '!ccache')
+install=binutils.install
+source=("http://ftp.gnu.org/gnu/binutils/binutils-2.25.1.tar.bz2"
+        "ld-as-needed.patch")
+sha256sums=('SKIP'
+            'eb3aceaab8ed26e06d505f82beb30f8f')
+
+prepare() {
+  cd ${srcdir}/binutils-2.25.1
+  
+  patch -p1 -i ${srcdir}/ld-as-needed.patch
+  # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
+  sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
+
+  mkdir ${srcdir}/binutils-build
+}
+
+build() {
+  cd ${srcdir}/binutils-build
+
+  ${srcdir}/binutils-2.25.1/configure \
+    --prefix=/usr
+    --enable-lto \
+    --enable-multilib \
+    --disable-gold \
+    --disable-werror \
+    --with-lib-path=/usr/lib:/usr/local/lib \
+    --with-bugurl=https://bugs.valhallalinux.org/ \
+    --enable-shared \
+    --enable-threads \
+    --enable-pic \
+    --enable-plugins \
+    --target=x86_64-valhalla-linux \
+    --build=x86_64-valhalla-linux
+    
+  # check the host environment and makes sure all the necessary tools are available
+  make configure-host
+
+  make tooldir=/usr
+}
+
+check() {
+  cd ${srcdir}/binutils-build
+  
+  # unset LDFLAGS as testsuite makes assumptions about which ones are active
+  # ignore failures in gold testsuite...
+  make -k LDFLAGS="" check || true
+}
+
+package() {
+  cd ${srcdir}/binutils-build
+  make prefix=${pkgdir}/usr tooldir=${pkgdir}/usr install
+
+  # Remove unwanted files
+  rm ${pkgdir}/usr/share/man/man1/{dlltool,nlmconv,windres,windmc}*
+
+  # No shared linking to these files outside binutils
+  rm ${pkgdir}/usr/lib/lib{bfd,opcodes}.so
+}
