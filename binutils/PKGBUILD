@@ -12,8 +12,8 @@ options=('staticlibs' '!distcc' '!ccache')
 install=binutils.install
 source=("http://ftp.gnu.org/gnu/binutils/binutils-2.25.1.tar.bz2"
         "ld-as-needed.patch")
-sha256sums=('SKIP'
-            'eb3aceaab8ed26e06d505f82beb30f8f')
+sha256sums=('b5b14added7d78a8d1ca70b5cb75fef57ce2197264f4f5835326b0df22ac9f22'
+            'db901a7910a2b14703473b28f021018b7e03b00a4b25a75566fce6ae3009c19b')
 
 prepare() {
   cd ${srcdir}/binutils-2.25.1

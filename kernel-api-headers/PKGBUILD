@@ -9,9 +9,9 @@ arch=('i686' 'x86_64')
 url="http://www.gnu.org/software/libc"
 license=('GPL2')
 source=(http://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basever}.tar.xz
-        http://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz
-md5sums=('fe9dc0f6729f36400ea81aa41d614c37'
-         'd7e306b17b0b5d49120adeee1a6bf4a8'
+        http://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz)
+sha256sums=('caf51f085aac1e1cea4d00dbbf3093ead07b551fc07b31b2a989c05f8ea72d9f'
+            '0976127a60a950acf2796f642ac647e5231573b9a0f25703a37a50b988bf3b88')
 
 prepare() {
   cd ${srcdir}/linux-${_basever}
@@ -31,8 +31,7 @@ package() {
 
   # use headers from libdrm
   rm -r ${pkgdir}/usr/include/drm
-  
+
   # clean-up unnecessary files generated during install
   find ${pkgdir} \( -name .install -o -name ..install.cmd \) -delete
 }
-
