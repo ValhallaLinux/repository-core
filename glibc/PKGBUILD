@@ -44,7 +44,7 @@ build() {
     --enable-add-ons \
     --with-__thread \
     --enable-kernel=2.6.25 \
-    --with-pkgversion='Valhalla Linux'
+    --with-pkgversion='Valhalla Linux' \
     --with-bugurl="https://bugs.valhallalinux.com/" \
     --with-tls \
     --enable-multi-arch \
