@@ -7,7 +7,7 @@ arch=('i686' 'x86_64')
 url="http://www.gnu.org/software/libc"
 license=('GPL' 'LGPL')
 groups=('base')
-depends=('kernel-api-headers>=4.1' 'tzdata' 'filesystem')
+depends=('kernel-api-headers>=4.1' 'tzdata')
 makedepends=('gcc>=5.2')
 options=('!strip' 'staticlibs')
 install=glibc.install
