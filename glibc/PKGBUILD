@@ -21,7 +21,7 @@ prepare() {
 build() {
   cd ${srcdir}/glibc-build
 
-  export CFLAGS="-O3 -g -U_FORTIFY_SOURCE -fno-strict-aliasing -fomit-frame-pointer -mno-tls-direct-seg-refs -mtune=generic"
+  #export CFLAGS="-O3 -g -U_FORTIFY_SOURCE -fno-strict-aliasing -fomit-frame-pointer -mno-tls-direct-seg-refs -mtune=generic"
 
   echo "slibdir=/usr/lib" >> configparms
   echo "rtlddir=/usr/lib" >> configparms
