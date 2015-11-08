@@ -22,12 +22,14 @@ build() {
   cd ${srcdir}/glibc-build
 
   #export CFLAGS="-O3 -g -U_FORTIFY_SOURCE -fno-strict-aliasing -fomit-frame-pointer -mno-tls-direct-seg-refs -mtune=generic"
-
+  
   echo "slibdir=/usr/lib" >> configparms
   echo "rtlddir=/usr/lib" >> configparms
   echo "sbindir=/usr/bin" >> configparms
   echo "rootsbindir=/usr/bin" >> configparms
-
+  
+  CFLAGS=${CFLAGS/-fstack-protector-strong/}
+  CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
   ${srcdir}/${pkgname}-${pkgver}/configure \
     --prefix=/usr \
     --libdir=/usr/lib \
@@ -47,13 +49,27 @@ build() {
     --with-pkgversion='Valhalla Linux' \
     --with-bugurl="https://bugs.valhallalinux.com/" \
     --with-tls \
-    --enable-multi-arch \
+    --enable-multi-arch 
+  #build the libraries without hardening
+  echo "build-programs=no" >> configparms
+  make
 
+  #re-enable hardening for programs
+  sed -i "/build-programs=/s#no#yes#" configparms
+  echo "CC += -fstack-protector-strong -D_FORTIFY_SOURCE=2" >> configparms
+  echo "CXX += -fstack-protector-strong -D_FORTIFY_SOURCE=2" >> configparms
   make
 }
 
 package() {
   cd ${srcdir}/glibc-build
+
+  install -dm755 ${pkgdir}/etc
+  touch ${pkgdir}/etc/ld.so.{cache,conf}
+
+  make install_root=${pkgdir} install
+
+  rm -f ${pkgdir}/etc/ld.so.{cache,conf}
 
   # remove the static libraries that have a shared counterpart
   # libc, libdl, libm and libpthread are required for toolchain testsuites
@@ -73,8 +89,7 @@ package() {
   cd $pkgdir
   strip $STRIP_BINARIES usr/bin/{gencat,getconf,getent,iconv,iconvconfig} \
                         usr/bin/{ldconfig,locale,localedef,nscd,makedb} \
-                        usr/bin/{pcprofiledump,pldd,rpcgen,sln,sprof} \
-                        usr/lib/getconf/*
+                        usr/bin/{pcprofiledump,pldd,rpcgen,sln,sprof}
   if [[ $CARCH = "i686" ]]; then
     strip $STRIP_BINARIES usr/bin/lddlibc4
   fi
